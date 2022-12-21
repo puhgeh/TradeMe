@@ -24,6 +24,9 @@ struct LatestListingsView: View {
                     }
                 }
             }
+            .refreshable {
+                viewModel.loadOAuth()
+            }
             .navigationTitle("Browse")
             .navigationBarTitleDisplayMode(.inline)
             .toolbar {

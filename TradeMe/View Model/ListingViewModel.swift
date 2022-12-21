@@ -15,14 +15,18 @@ class ListingViewModel: ObservableObject {
     private let service = ListingService.shared
     private var cancellables = Set<AnyCancellable>()
     private var request: AnyCancellable? = nil
-    
+    private var decoder: JSONDecoder {
+        let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        return decoder
+    }
     
     init() {
-        load()
+        loadOAuth()
     }
     
     func load() {
-        request = try? service.latest(stub: true)
+        request = try? service.latest(stub: false)
             .map(\.value)
             .sink(receiveCompletion: { completion in
                 switch completion {
@@ -36,6 +40,22 @@ class ListingViewModel: ObservableObject {
             })
         
         request?.store(in: &cancellables)
+    }
+    
+    func loadOAuth() {
+        do {
+            try service.latestOAuth { [weak self] result in
+                switch result {
+                    case .success(let response):
+                    let latest = try? self?.decoder.decode(Latest.self, from: response.data)
+                    self?.listings = latest?.list ?? []
+                    case .failure:
+                    self?.listings.removeAll()
+                }
+            }
+        } catch {
+            listings.removeAll()
+        }
     }
     
     deinit {

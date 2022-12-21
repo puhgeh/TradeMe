@@ -7,6 +7,7 @@
 
 import Foundation
 import Combine
+import OAuthSwift
 
 class ListingService {
     static let shared = ListingService()
@@ -17,6 +18,15 @@ class ListingService {
             let request = try Route.latest.request()
             let payload: Data? = stub ? data() : nil
             return (APIClient.run(request, stub: payload) as AnyPublisher<Response<Latest>, Error>)
+        } catch {
+            throw APIError.apiError(reason: error.localizedDescription)
+        }
+    }
+    
+    func latestOAuth(completion: OAuthSwiftHTTPRequest.CompletionHandler?) throws {
+        do {
+            let url = try Route.latest.url()
+            APIClient.oauth(url: url, completionHandler: completion)
         } catch {
             throw APIError.apiError(reason: error.localizedDescription)
         }

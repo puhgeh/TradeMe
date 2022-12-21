@@ -7,12 +7,21 @@
 
 import Foundation
 import Combine
+import OAuthSwift
 
 struct APIClient {
     private static var decoder: JSONDecoder {
         let decoder = JSONDecoder()
         decoder.dateDecodingStrategy = .iso8601
         return decoder
+    }
+    
+    // This is just for the sake of running this sample. Keys should not be stored here
+    private static var oauthSwift: OAuthSwift {
+        OAuth1Swift(
+            consumerKey: "A1AC63F0332A131A78FAC304D007E7D1",
+            consumerSecret: "EC7F18B17A062962C6930A8AE88B16C7"
+        )
     }
     
     static func run<T: Decodable>(_ request: URLRequest, stub: Data?) -> AnyPublisher<Response<T>, Error> {
@@ -45,5 +54,9 @@ struct APIClient {
             }
             .receive(on: DispatchQueue.main)
             .eraseToAnyPublisher()
+    }
+    
+    static func oauth(url: URL, completionHandler completion: OAuthSwiftHTTPRequest.CompletionHandler?) {
+        oauthSwift.client.get(url, completionHandler: completion)
     }
 }
